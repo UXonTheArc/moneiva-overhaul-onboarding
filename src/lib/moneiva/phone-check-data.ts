@@ -54,17 +54,21 @@ const call = (id: string, who: string): FlowItem =>
     ],
   })
 
+export const ZOOM_CONNECTIONS = ["Zoom: OS&D desk (svc_zoom@example.test)", "Zoom: Dispatch team (dispatch_zoom@example.test)"]
+
 const text = (id: string, who: string): FlowItem =>
   s({
     id,
     kind: "Send a text",
-    title: "Send a text",
+    title: "Text with Zoom SMS",
     sub: `Texts the ${who} to call the OS&D desk back`,
-    setup: "Finish setup: pick a texting number",
+    setup: "Can't send: its Zoom connection was removed",
     fields: [
-      ["To", `The ${who}`],
-      ["Message", "This is the OS&D desk about PRO {pro}. Please call us back at (555) 010-0100."],
-      ["Send from", "Not set yet"],
+      ["Zoom connection", "Missing. The connection it used no longer exists."],
+      ["Send from", "(555) 010-0188, sender ID svc_zoom@example.test"],
+      ["To", who === "driver" ? "The driver's phone, from the OS&D file" : "The driver's and dispatcher's phones, from the OS&D file"],
+      ["Message", "Hi {driver name}, this is the OS&D desk about load {load number}. Please call us back at (555) 010-0100."],
+      ["If this step fails", "Use the workflow default"],
     ],
   })
 

@@ -49,7 +49,9 @@ export function SimpleSelect({
   label,
   wrap,
   size,
+  placeholder,
 }: {
+  placeholder?: string
   id?: string
   value?: string
   defaultValue?: string
@@ -64,7 +66,7 @@ export function SimpleSelect({
   return (
     <Select value={value} defaultValue={defaultValue} onValueChange={onChange}>
       <SelectTrigger size={size} id={id} aria-label={label} className={cn("w-full", wrap && "min-h-9 py-2 text-left whitespace-normal data-[size=default]:h-auto *:data-[slot=select-value]:line-clamp-none", className)}>
-        <SelectValue />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (

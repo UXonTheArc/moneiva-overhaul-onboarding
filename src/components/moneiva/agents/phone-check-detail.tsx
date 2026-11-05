@@ -10,9 +10,18 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AUTOMATION_STATUS_OPTIONS } from "@/lib/moneiva/automations-data"
 import type { AgentStatus } from "@/lib/moneiva/data"
-import { FLOW_KIND_COLOR, PHONE_CHECK, type FlowItem, PHONE_CHECK_INFO, allSplits, flattenSteps } from "@/lib/moneiva/phone-check-data"
+import {
+  FLOW_KIND_COLOR,
+  PHONE_CHECK,
+  PHONE_CHECK_INFO,
+  ZOOM_CONNECTIONS,
+  allSplits,
+  flattenSteps,
+  type FlowItem,
+} from "@/lib/moneiva/phone-check-data"
 
 import { FlowTree } from "./flow-tree"
+import { SimpleSelect } from "./form-row"
 import { StatusMenu } from "./menus"
 import { useQuery } from "./use-query"
 
@@ -28,12 +37,26 @@ function endings(path: FlowItem[], joins = false): number {
   return n
 }
 
+/** Once a Zoom connection is picked, the text steps lose their warning and show the connection. */
+function withZoom(items: FlowItem[], zoom: string | null): FlowItem[] {
+  if (!zoom) return items
+  return items.map((it) =>
+    "step" in it
+      ? it.step.setup
+        ? { step: { ...it.step, setup: undefined, fields: it.step.fields.map(([k, v]) => [k, k === "Zoom connection" ? zoom : v] as [string, string]) } }
+        : it
+      : { split: { ...it.split, branches: it.split.branches.map((b) => ({ ...b, path: withZoom(b.path, zoom) })) } }
+  )
+}
+
 export function PhoneCheckDetail() {
   const q = useQuery()
   const [status, setStatus] = useState<AgentStatus>("live")
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
-  const steps = useMemo(() => flattenSteps(PHONE_CHECK), [])
+  const [zoom, setZoom] = useState<string | null>(null)
+  const items = useMemo(() => withZoom(PHONE_CHECK, zoom), [zoom])
+  const steps = useMemo(() => flattenSteps(items), [items])
   const numbers = useMemo(() => Object.fromEntries(steps.map((s, i) => [s.id, i + 1])), [steps])
   const needSetup = steps.filter((s) => s.setup)
   const paths = useMemo(() => endings(PHONE_CHECK), [])
@@ -81,7 +104,7 @@ export function PhoneCheckDetail() {
         <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-orange-200 bg-orange-50 px-3.5 py-3 text-orange-900 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-100">
           <span className="inline-flex items-center gap-2">
             <TriangleAlert className="size-4" />
-            {needSetup.length} text steps need a texting number. Until then, those rows wait and nothing is sent.
+            {needSetup.length} text steps can&apos;t send because their Zoom connection was removed. Those rows stop at the text step.
           </span>
           <Button variant="outline" size="sm" className="text-foreground" onClick={() => select(needSetup[0].id)}>
             Show me
@@ -92,7 +115,7 @@ export function PhoneCheckDetail() {
       <div className="flex flex-col items-stretch gap-4 xl:flex-row">
         <div className="min-w-0 flex-1">
           <FlowTree
-            items={PHONE_CHECK}
+            items={items}
             numbers={numbers}
             selected={node?.id ?? null}
             onSelect={select}
@@ -126,8 +149,20 @@ export function PhoneCheckDetail() {
               </Button>
             </div>
             {node.setup ? (
-              <div className="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-[13px] text-orange-900 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-100">
-                {node.setup}
+              <div className="flex flex-col gap-2.5 rounded-md border border-orange-200 bg-orange-50 px-3 py-2.5 text-[13px] text-orange-900 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-100">
+                <span className="font-medium">{node.setup}</span>
+                <span>Pick a Zoom connection and both text steps start sending again.</span>
+                <SimpleSelect
+                  label="Zoom connection"
+                  value=""
+                  placeholder="Choose a Zoom connection"
+                  options={ZOOM_CONNECTIONS}
+                  className="bg-background text-foreground"
+                  onChange={(v) => {
+                    setZoom(v)
+                    toast.success("Zoom connection set. Both text steps can send again.", { action: { label: "Undo", onClick: () => setZoom(null) } })
+                  }}
+                />
               </div>
             ) : null}
             {node.fields.map(([label, value]) => (
