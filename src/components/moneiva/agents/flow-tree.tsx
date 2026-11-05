@@ -344,7 +344,7 @@ function Node({ step, n, selected, onSelect }: { step: FlowStep; n: number; sele
     >
       <span className="flex items-center gap-2">
         <span
-          className="inline-grid size-[20px] place-items-center rounded-md text-[10px] font-semibold text-white"
+          className="inline-grid size-[20px] shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white"
           style={{ background: FLOW_KIND_COLOR[step.kind] }}
         >
           {n}

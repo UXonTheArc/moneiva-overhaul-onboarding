@@ -51,7 +51,7 @@ export function StepCard({ n, kind, title, sub, color, link, href, selected, isN
     <>
       <span className="flex items-center gap-2">
         <span
-          className="inline-grid size-[22px] place-items-center rounded-md text-[11px] font-semibold text-white"
+          className="inline-grid size-[22px] shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
           style={{ background: color ?? STEP_COLOR[kind] ?? "#52525b" }}
         >
           {n}
