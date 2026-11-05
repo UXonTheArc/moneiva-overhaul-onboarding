@@ -72,14 +72,19 @@ export function FlowTree({
   const box = useRef<HTMLDivElement>(null)
   const inner = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
-  const [scale, setScale] = useState(1)
+  const [view, setView] = useState({ x: 0, y: 20, s: 1 })
   const [fitted, setFitted] = useState(true)
   const [lines, setLines] = useState<string[]>([])
-  const centered = useRef(false)
+  const [dragging, setDragging] = useState(false)
+  const drag = useRef<{ id: number; x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null)
 
-  const fitScale = useCallback(() => {
-    if (!box.current || !inner.current) return 1
-    return Math.min(1, Math.max(0.35, (box.current.clientWidth - 40) / inner.current.offsetWidth))
+  /** Fit the tree's width in the box, centered, top aligned. */
+  const fitView = useCallback(() => {
+    const b = box.current
+    const el = inner.current
+    if (!b || !el) return null
+    const s = Math.min(1, Math.max(0.3, (b.clientWidth - 40) / el.offsetWidth))
+    return { x: (b.clientWidth - el.offsetWidth * s) / 2, y: 20, s }
   }, [])
 
   // Measure the tree and draw the connecting lines from where the cards actually landed.
@@ -110,26 +115,75 @@ export function FlowTree({
     setLines(next)
   }, [items, collapsed])
 
-  // ResizeObserver also fires once on observe, which draws the first lines.
+  // ResizeObserver also fires once on observe, which draws the first lines and fits the view.
   useEffect(() => {
     const ro = new ResizeObserver(() => {
       measure()
-      if (fitted) setScale(fitScale())
-      // On a narrow screen the tree is wider than the box, so start on its trunk, not its left edge.
-      const b = box.current
-      if (b && !centered.current && b.scrollWidth > b.clientWidth) {
-        centered.current = true
-        requestAnimationFrame(() => (b.scrollLeft = (b.scrollWidth - b.clientWidth) / 2))
+      if (fitted) {
+        const v = fitView()
+        if (v) setView(v)
       }
     })
     if (box.current) ro.observe(box.current)
     if (inner.current) ro.observe(inner.current)
     return () => ro.disconnect()
-  }, [measure, fitted, fitScale])
+  }, [measure, fitted, fitView])
 
-  const zoom = (d: number) => {
+  /** Zoom by a factor, keeping the point under (cx, cy) in place. */
+  const zoomAt = useCallback((factor: number, cx: number, cy: number) => {
     setFitted(false)
-    setScale((s) => Math.min(1.5, Math.max(0.35, Math.round((s + d) * 10) / 10)))
+    setView((v) => {
+      const s = Math.min(1.6, Math.max(0.3, v.s * factor))
+      return { s, x: cx - ((cx - v.x) * s) / v.s, y: cy - ((cy - v.y) * s) / v.s }
+    })
+  }, [])
+  const zoom = (factor: number) => {
+    const b = box.current
+    if (b) zoomAt(factor, b.clientWidth / 2, b.clientHeight / 2)
+  }
+
+  // Wheel or trackpad: scroll pans, pinch (or Ctrl/Cmd + scroll) zooms. Needs a non-passive listener.
+  useEffect(() => {
+    const b = box.current
+    if (!b) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const r = b.getBoundingClientRect()
+      if (e.ctrlKey || e.metaKey) zoomAt(Math.exp(-Math.max(-50, Math.min(50, e.deltaY)) * 0.006), e.clientX - r.left, e.clientY - r.top)
+      else {
+        setFitted(false)
+        setView((v) => ({ ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }))
+      }
+    }
+    b.addEventListener("wheel", onWheel, { passive: false })
+    return () => b.removeEventListener("wheel", onWheel)
+  }, [zoomAt])
+
+  // Drag anywhere to move the canvas. A press that doesn't move still clicks the step under it.
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false }
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x
+    const dy = e.clientY - d.y
+    if (!d.moved && Math.hypot(dx, dy) < 4) return
+    if (!d.moved) {
+      d.moved = true
+      setDragging(true)
+      setFitted(false)
+      box.current?.setPointerCapture(e.pointerId)
+    }
+    setView((v) => ({ ...v, x: d.vx + dx, y: d.vy + dy }))
+  }
+  const endDrag = (e: React.PointerEvent) => {
+    if (drag.current?.id !== e.pointerId) return
+    if (box.current?.hasPointerCapture(e.pointerId)) box.current.releasePointerCapture(e.pointerId)
+    setDragging(false)
+    // Leave the moved flag for the click that follows, so it is swallowed.
+    setTimeout(() => (drag.current = null), 0)
   }
 
   return (
@@ -149,11 +203,11 @@ export function FlowTree({
             {collapsed.size ? "Expand all" : "Collapse all"}
           </Button>
           <span className="mx-1 h-4 w-px bg-border" />
-          <Button variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => zoom(-0.1)}>
+          <Button variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => zoom(1 / 1.2)}>
             <Minus />
           </Button>
-          <span className="w-10 text-center text-xs tabular-nums text-muted-foreground">{Math.round(scale * 100)}%</span>
-          <Button variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => zoom(0.1)}>
+          <span className="w-10 text-center text-xs tabular-nums text-muted-foreground">{Math.round(view.s * 100)}%</span>
+          <Button variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => zoom(1.2)}>
             <Plus />
           </Button>
           <Button
@@ -161,7 +215,8 @@ export function FlowTree({
             size="sm"
             onClick={() => {
               setFitted(true)
-              setScale(fitScale())
+              const v = fitView()
+              if (v) setView(v)
             }}
           >
             <Maximize2 /> Fit
@@ -170,19 +225,33 @@ export function FlowTree({
       </div>
       <div
         ref={box}
-        className="overflow-auto bg-[radial-gradient(#e4e4e7_1px,transparent_1px)] bg-size-[16px_16px] p-5 [contain:inline-size] dark:bg-[radial-gradient(#3f3f46_1px,transparent_1px)]"
-        style={{ maxHeight: "78vh" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={(e) => {
+          if (drag.current?.moved) {
+            e.stopPropagation()
+            e.preventDefault()
+          }
+        }}
+        className={cn(
+          "relative h-[70vh] min-h-[420px] touch-none overflow-hidden rounded-b-xl bg-[radial-gradient(#e4e4e7_1px,transparent_1px)] select-none dark:bg-[radial-gradient(#3f3f46_1px,transparent_1px)]",
+          dragging ? "cursor-grabbing" : "cursor-grab"
+        )}
+        style={{ backgroundSize: `${16 * view.s}px ${16 * view.s}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
       >
-        <div className="mx-auto" style={{ width: size.w * scale, height: size.h * scale }}>
-          <div ref={inner} className="relative w-max origin-top-left" style={{ transform: `scale(${scale})` }}>
-            <svg className="pointer-events-none absolute inset-0 overflow-visible" width={size.w} height={size.h} aria-hidden>
-              {lines.map((d, i) => (
-                <path key={i} d={d} fill="none" className="stroke-zinc-300 dark:stroke-zinc-600" strokeWidth={1.5} />
-              ))}
-            </svg>
-            <Path items={items} numbers={numbers} selected={selected} onSelect={onSelect} collapsed={collapsed} onToggle={onToggle} />
-          </div>
+        <div ref={inner} className="absolute top-0 left-0 w-max origin-top-left" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.s})` }}>
+          <svg className="pointer-events-none absolute inset-0 overflow-visible" width={size.w} height={size.h} aria-hidden>
+            {lines.map((d, i) => (
+              <path key={i} d={d} fill="none" className="stroke-zinc-300 dark:stroke-zinc-600" strokeWidth={1.5} />
+            ))}
+          </svg>
+          <Path items={items} numbers={numbers} selected={selected} onSelect={onSelect} collapsed={collapsed} onToggle={onToggle} />
         </div>
+        <span className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-background/80 px-2 py-1 text-[11px] text-muted-foreground backdrop-blur">
+          Drag or scroll to move. Pinch, or use + and −, to zoom.
+        </span>
       </div>
     </div>
   )
