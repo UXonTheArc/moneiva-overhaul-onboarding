@@ -142,18 +142,22 @@ export function FlowTree({
     if (b) zoomAt(factor, b.clientWidth / 2, b.clientHeight / 2)
   }
 
-  // Wheel or trackpad: scroll pans, pinch (or Ctrl/Cmd + scroll) zooms. Needs a non-passive listener.
+  // Mouse wheel and trackpad pinch zoom around the pointer. Shift + wheel, or a sideways swipe, pans.
+  // Needs a non-passive listener so the page doesn't scroll too.
   useEffect(() => {
     const b = box.current
     if (!b) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
       const r = b.getBoundingClientRect()
-      if (e.ctrlKey || e.metaKey) zoomAt(Math.exp(-Math.max(-50, Math.min(50, e.deltaY)) * 0.006), e.clientX - r.left, e.clientY - r.top)
-      else {
+      const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY)
+      if (e.shiftKey || (sideways && !e.ctrlKey && !e.metaKey)) {
         setFitted(false)
-        setView((v) => ({ ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }))
+        setView((v) => (e.shiftKey ? { ...v, x: v.x - (e.deltaX || e.deltaY) } : { ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }))
+        return
       }
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      zoomAt(Math.exp(-Math.max(-60, Math.min(60, dy)) * 0.004), e.clientX - r.left, e.clientY - r.top)
     }
     b.addEventListener("wheel", onWheel, { passive: false })
     return () => b.removeEventListener("wheel", onWheel)
@@ -250,7 +254,7 @@ export function FlowTree({
           <Path items={items} numbers={numbers} selected={selected} onSelect={onSelect} collapsed={collapsed} onToggle={onToggle} />
         </div>
         <span className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-background/80 px-2 py-1 text-[11px] text-muted-foreground backdrop-blur">
-          Drag or scroll to move. Pinch, or use + and −, to zoom.
+          Drag to move. Scroll or pinch to zoom.
         </span>
       </div>
     </div>
