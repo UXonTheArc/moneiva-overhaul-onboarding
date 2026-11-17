@@ -34,8 +34,12 @@ import {
 } from "@/components/ui/sidebar"
 import { LEARNING_IDS } from "@/lib/moneiva/agents-data"
 import { inboxItems } from "@/lib/moneiva/inbox-data"
+import { ACTIVITY } from "@/lib/moneiva/activity-data"
+import { cn } from "@/lib/utils"
 
-type NavItem = { title: string; icon: LucideIcon; href?: string; badge?: string }
+const FAILS = ACTIVITY.filter((r) => r.status === "fail").length
+
+type NavItem = { title: string; icon: LucideIcon; href?: string; badge?: string; dot?: "amber" | "red"; dotLabel?: string }
 type NavGroup = { label: string; items: NavItem[] }
 
 // Proposed nav (Jake, Oct 16). Management items are in the nav only; their screens are not part of this mockup.
@@ -44,8 +48,9 @@ const NAV: NavGroup[] = [
     label: "Work",
     items: [
       { title: "Home", icon: Home, href: "/" },
-      { title: "Inbox", icon: Inbox, href: "/inbox", badge: String(inboxItems.length) },
-      { title: "Activity", icon: Activity, href: "/activity" },
+      { title: "Inbox", icon: Inbox, href: "/inbox", badge: String(inboxItems.length), dot: inboxItems.length ? "amber" : undefined, dotLabel: `${inboxItems.length} need you` },
+      // A red dot only for work that couldn't finish. Activity is a log, so "new" alone isn't worth a dot.
+      { title: "Activity", icon: Activity, href: "/activity", dot: FAILS ? "red" : undefined, dotLabel: `${FAILS} couldn't finish` },
     ],
   },
   {
@@ -108,8 +113,21 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   {item.href ? (
                     <SidebarMenuButton asChild isActive={isActive(pathname, item.href)} tooltip={item.title}>
-                      <Link href={item.href}>
-                        <item.icon />
+                      <Link href={item.href} aria-label={item.dot ? `${item.title}, ${item.dotLabel}` : undefined}>
+                        <span className="relative flex">
+                          <item.icon className="size-4" />
+                          {item.dot ? (
+                            <i
+                              aria-hidden
+                              className={cn(
+                                "absolute -top-1 -right-1 size-2 rounded-full ring-2 ring-sidebar",
+                                item.dot === "red" ? "bg-red-600" : "bg-amber-500",
+                                // Open nav shows the count instead, so the Inbox dot only shows when collapsed.
+                                item.badge && "hidden group-data-[collapsible=icon]:block"
+                              )}
+                            />
+                          ) : null}
+                        </span>
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
