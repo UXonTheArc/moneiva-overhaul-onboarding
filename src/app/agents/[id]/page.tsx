@@ -3,7 +3,7 @@ import { Suspense } from "react"
 
 import { AgentDetail } from "@/components/moneiva/agents/agent-detail"
 import { Page } from "@/components/moneiva/page-header"
-import { AGENTS, agentById } from "@/lib/moneiva/agents-data"
+import { AGENTS, agentById, isLearning } from "@/lib/moneiva/agents-data"
 
 export function generateStaticParams() {
   return AGENTS.map((a) => ({ id: a.id }))
@@ -14,7 +14,7 @@ export default async function AgentPage({ params }: PageProps<"/agents/[id]">) {
   const agent = agentById(id)
   if (!agent) notFound()
   return (
-    <Page title="Agents">
+    <Page title={isLearning(agent) ? "The Operator" : "Task agents"}>
       <Suspense>
         <AgentDetail id={agent.id} />
       </Suspense>
