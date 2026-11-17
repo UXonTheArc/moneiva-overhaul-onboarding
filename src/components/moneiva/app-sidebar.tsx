@@ -94,6 +94,10 @@ export function AppSidebar() {
         <div className="flex justify-center px-2 pt-2 pb-3 group-data-[collapsible=icon]:hidden">
           <Image src="/moneiva-logo.png" alt="Moneiva" width={128} height={32} className="h-auto w-32" priority />
         </div>
+        {/* Collapsed: just the three bars from the logo, so the brand still shows. */}
+        <Link href="/" aria-label="Moneiva home" className="hidden justify-center pt-2 pb-1 group-data-[collapsible=icon]:flex">
+          <Image src="/moneiva-mark.png" alt="Moneiva" width={24} height={24} className="size-6" priority />
+        </Link>
       </SidebarHeader>
       <SidebarContent className="gap-0">
         {NAV.map((group) => (
