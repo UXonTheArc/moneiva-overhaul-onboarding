@@ -16,13 +16,13 @@ export type AutomationRow = {
 }
 
 export const AUTOMATIONS: AutomationRow[] = [
-  { id: "osd", name: "Damage report follow-up", desc: "Reads the report, calls the site, then tells claims or the customer", agents: "The Operator, OS&D check calls", trigger: "New email with an OS&D report", status: "live", last: "Couldn't finish, 7:10 AM", href: "/workflows/damage-report" },
+  { id: "osd", name: "Damage report follow-up", desc: "Reads the report, calls the site, then tells claims or the customer", agents: "Email and texts, OS&D check calls", trigger: "New email with an OS&D report", status: "live", last: "Couldn't finish, 7:10 AM", href: "/workflows/damage-report" },
   { id: "phonecheck", name: "OS&D phone check", desc: "Finds a good phone, then calls or texts the driver or dispatcher until someone answers", agents: "OS&D check calls", trigger: "New OS&D file, checked every 15 minutes", status: "live", last: "9 min ago", href: "/workflows/osd-phone-check" },
-  { id: "late", name: "Late load updates", desc: "Gets a new ETA from the carrier and emails the customer", agents: "Carrier check calls, The Operator", trigger: "Weekdays at 9 AM and 2 PM", status: "live", last: "2 hours ago" },
-  { id: "missed", name: "Missed call follow-up", desc: "Emails callers who left a voicemail after hours", agents: "Inbound phone line, The Operator", trigger: "Voicemail left after hours", status: "live", draft: true, last: "7:05 AM today" },
+  { id: "late", name: "Late load updates", desc: "Gets a new ETA from the carrier and emails the customer", agents: "Carrier check calls, Email and texts", trigger: "Weekdays at 9 AM and 2 PM", status: "live", last: "2 hours ago" },
+  { id: "missed", name: "Missed call follow-up", desc: "Emails callers who left a voicemail after hours", agents: "Inbound phone line, Email and texts", trigger: "Voicemail left after hours", status: "live", draft: true, last: "7:05 AM today" },
   { id: "latepickup", name: "Late pickup alert", desc: "Emails the dispatcher when a pickup is 2 hours late in Acme", agents: "No agent", trigger: "Pickup 2 hours late in Acme", status: "live", last: "Yesterday, 3:40 PM" },
   { id: "kpi", name: "Weekly KPI email", desc: "Sends last week's numbers to the team leads", agents: "No agent", trigger: "Mondays at 7 AM", status: "off", last: "Never" },
-  { id: "dedup", name: "Duplicate email test", desc: "Tried merging repeat emails before the Operator read them", agents: "The Operator", trigger: "New email to service@example.test", status: "archived", last: "Aug 28", archivedOn: "Archived Sep 2 by Taylor Morgan" },
+  { id: "dedup", name: "Duplicate email test", desc: "Tried merging repeat emails before the Operator read them", agents: "Email and texts", trigger: "New email to service@example.test", status: "archived", last: "Aug 28", archivedOn: "Archived Sep 2 by Taylor Morgan" },
   { id: "holiday", name: "Holiday auto-reply", desc: "Told senders the desk was closed", agents: "No agent", trigger: "Dec 24 to Jan 2", status: "archived", last: "Jan 2", archivedOn: "Archived Jan 3 by Taylor Morgan" },
 ]
 

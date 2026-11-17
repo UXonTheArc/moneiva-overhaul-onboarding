@@ -5,7 +5,7 @@ import { Page } from "@/components/moneiva/page-header"
 
 export default function AgentsPage() {
   return (
-    <Page title="Agents">
+    <Page title="Task agents">
       <Suspense>
         <AgentsList />
       </Suspense>

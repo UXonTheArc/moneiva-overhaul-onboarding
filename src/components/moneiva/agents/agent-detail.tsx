@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { agentById } from "@/lib/moneiva/agents-data"
+import { agentById, isLearning } from "@/lib/moneiva/agents-data"
 import { AGENT_STATUS_OPTIONS, FLOWS, requestTypesFor, type AgentId } from "@/lib/moneiva/agents-extra-data"
 import type { AgentStatus } from "@/lib/moneiva/data"
 
@@ -48,6 +48,7 @@ export function AgentDetail({ id }: { id: AgentId }) {
   const [draft, setDraft] = useState<DraftStep[] | null>(null)
   const [publishedNote, setPublishedNote] = useState("Published Oct 2 by Jordan Lee")
   const typeCount = requestTypesFor(agent).length
+  const learning = isLearning(agent)
 
   const goTab = (t: string) => q.set({ tab: t === "profile" ? null : t, edit: null })
   const startEdit = () => {
@@ -67,10 +68,14 @@ export function AgentDetail({ id }: { id: AgentId }) {
   return (
     <>
       <PageHeader
-        crumbs={[{ label: "Agents", href: "/agents" }, { label: agent.name }]}
+        crumbs={
+          learning
+            ? [{ label: "The Operator", href: "/operator" }, { label: "Learning agents", href: "/operator" }, { label: agent.name }]
+            : [{ label: "Task agents", href: "/agents" }, { label: agent.name }]
+        }
         leading={<KindIcon kind={agent.kind} size="lg" />}
         title={agent.name}
-        description={`${agent.channel} · works for ${agent.team}`}
+        description={`${learning ? "Learning agent for the Operator" : "Task agent"} · ${agent.channel} · works for ${agent.team}`}
         actions={
           <>
             <StatusMenu

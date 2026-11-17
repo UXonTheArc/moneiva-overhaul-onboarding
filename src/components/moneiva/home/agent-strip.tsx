@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowRight, CalendarDays, ChevronDown, Mail, Phone, PhoneOutgoing } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { AGENTS, type Agent, type AgentKind } from "@/lib/moneiva/agents-data"
+import { LEARNING_AGENTS, TASK_AGENTS, type Agent, type AgentKind } from "@/lib/moneiva/agents-data"
 import { STATUS } from "@/components/moneiva/status"
 import { Card } from "@/components/ui/card"
 
@@ -23,8 +23,40 @@ const HOME_TILE: Partial<Record<Agent["id"], { sub: string; needs: string; needs
 // and the footer opens the work that is waiting.
 export function AgentStrip() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-      {AGENTS.map((a) => {
+    <div className="grid grid-cols-1 gap-x-3 gap-y-5 xl:grid-cols-5">
+      <Group
+        className="xl:col-span-2"
+        title="The Operator"
+        sub="Learning agents"
+        href="/operator"
+        cols="sm:grid-cols-2"
+        agents={LEARNING_AGENTS}
+      />
+      <Group className="xl:col-span-3" title="Task agents" sub="Follow a script" href="/agents" cols="sm:grid-cols-2 lg:grid-cols-3" agents={TASK_AGENTS} />
+    </div>
+  )
+}
+
+function Group({ title, sub, href, agents, cols, className }: { title: string; sub: string; href: string; agents: Agent[]; cols: string; className?: string }) {
+  return (
+    <section className={cn("flex min-w-0 flex-col gap-2", className)}>
+      <div className="flex items-baseline gap-2 px-0.5">
+        <Link href={href} className="text-sm font-medium hover:underline">
+          {title}
+        </Link>
+        <span className="text-[13px] text-muted-foreground">{sub}</span>
+      </div>
+      <div className={cn("grid grid-cols-1 gap-3", cols)}>
+        <Tiles agents={agents} />
+      </div>
+    </section>
+  )
+}
+
+function Tiles({ agents }: { agents: Agent[] }) {
+  return (
+    <>
+      {agents.map((a) => {
         const Icon = KIND_ICON[a.kind]
         const tile = HOME_TILE[a.id]
         const sub = tile?.sub ?? a.todayLabel
@@ -75,6 +107,6 @@ export function AgentStrip() {
           </Card>
         )
       })}
-    </div>
+    </>
   )
 }

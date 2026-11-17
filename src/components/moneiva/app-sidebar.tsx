@@ -7,6 +7,7 @@ import {
   Activity,
   BarChart3,
   Bot,
+  Brain,
   ChevronsUpDown,
   FileText,
   GraduationCap,
@@ -31,6 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { LEARNING_IDS } from "@/lib/moneiva/agents-data"
 import { inboxItems } from "@/lib/moneiva/inbox-data"
 
 type NavItem = { title: string; icon: LucideIcon; href?: string; badge?: string }
@@ -47,16 +49,19 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Teach",
+    // The Operator is the brain: what it knows, how it learns, and the learning agents that feed it.
+    label: "Operator",
     items: [
+      { title: "Overview", icon: Brain, href: "/operator" },
       { title: "Playbook", icon: FileText, href: "/playbook" },
       { title: "Training", icon: GraduationCap, href: "/training" },
     ],
   },
   {
+    // Task agents follow a script. Workflows decide when they run.
     label: "Build",
     items: [
-      { title: "Agents", icon: Bot, href: "/agents" },
+      { title: "Task agents", icon: Bot, href: "/agents" },
       { title: "Workflows", icon: Workflow, href: "/workflows" },
     ],
   },
@@ -71,8 +76,12 @@ const NAV: NavGroup[] = [
   },
 ]
 
+/** Learning agents belong to the Operator, so their pages light up Overview, not Task agents. */
+const LEARNING_PAGES = LEARNING_IDS.map((id) => `/agents/${id}`)
+
 function isActive(pathname: string, href?: string) {
   if (!href) return false
+  if (LEARNING_PAGES.includes(pathname)) return href === "/operator"
   if (href === "/") return pathname === "/"
   return pathname === href || pathname.startsWith(href + "/")
 }

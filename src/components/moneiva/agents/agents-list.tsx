@@ -1,6 +1,6 @@
 "use client"
 
-import { CircleAlert, Ellipsis, Plus } from "lucide-react"
+import { ArrowRight, Brain, CircleAlert, Ellipsis, Plus } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { AGENTS, type Agent } from "@/lib/moneiva/agents-data"
+import { LEARNING_AGENTS, TASK_AGENTS, type Agent } from "@/lib/moneiva/agents-data"
 import type { AgentStatus } from "@/lib/moneiva/data"
 
 import { CreateAgentDialog } from "./create-agent-dialog"
@@ -39,8 +39,8 @@ export function AgentsList() {
   return (
     <>
       <PageHeader
-        title="Agents"
-        description="Each agent works one channel for your team. Open one to change who it is, what it handles, and how it runs."
+        title="Task agents"
+        description="Task agents follow a script you set, and workflows decide when they run. Open one to change who it is, what it says, and how it runs."
         actions={
           <Button onClick={() => q.set({ create: "1" })}>
             <Plus /> Create agent
@@ -48,10 +48,23 @@ export function AgentsList() {
         }
       />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {AGENTS.map((a) => (
+        {TASK_AGENTS.map((a) => (
           <AgentCard key={a.id} agent={a} status={moved[a.id] ?? a.status} onStatus={setStatus} />
         ))}
       </div>
+      <Link
+        href="/operator"
+        className="flex flex-wrap items-center gap-3 rounded-xl border bg-muted/40 px-5 py-4 transition-colors hover:bg-muted"
+      >
+        <Brain className="size-5 flex-none text-muted-foreground" aria-hidden />
+        <span className="min-w-0 flex-[1_1_320px] text-[13px] text-muted-foreground">
+          <span className="font-medium text-foreground">Looking for {LEARNING_AGENTS.map((a) => a.name).join(" or ")}?</span> Those are
+          learning agents. They belong to the Operator and learn from your team, so they live under Operator.
+        </span>
+        <span className="inline-flex items-center gap-1 text-[13px] font-medium">
+          Open the Operator <ArrowRight className="size-3.5" />
+        </span>
+      </Link>
       <CreateAgentDialog open={createOpen} onOpenChange={(o) => q.set({ create: o ? "1" : null })} />
     </>
   )
