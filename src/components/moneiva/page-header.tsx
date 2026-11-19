@@ -1,19 +1,9 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { TopBar } from "@/components/moneiva/setup-top-bar"
 
-/** The thin bar at the top of the content area: sidebar toggle plus the page name. Sticky, so it stays put when a phone restores scroll on refresh. */
-export function TopBar({ title }: { title: string }) {
-  return (
-    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
-      <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-      <span className="text-sm font-medium">{title}</span>
-    </header>
-  )
-}
+export { TopBar }
 
 export type Crumb = { label: string; href?: string }
 

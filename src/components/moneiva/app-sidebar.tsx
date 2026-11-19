@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LEARNING_IDS } from "@/lib/moneiva/agents-data"
 import { cn } from "@/lib/utils"
-import { resetSetup, useSetup } from "@/lib/moneiva/setup-store"
+import { resetSetup, useHydrated, useSetup } from "@/lib/moneiva/setup-store"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 type NavItem = { title: string; icon: LucideIcon; href?: string; badge?: string; dot?: "amber" | "red"; dotLabel?: string }
@@ -95,7 +95,9 @@ export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const setup = useSetup()
-  if (pathname.startsWith("/setup")) return null
+  const hydrated = useHydrated()
+  // No nav until setup has run: before that every page is empty, so there's nothing to navigate to.
+  if (pathname.startsWith("/setup") || !hydrated || !setup) return null
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>

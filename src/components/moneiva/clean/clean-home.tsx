@@ -32,7 +32,7 @@ export function CleanHome() {
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <h2 className="text-xl font-semibold tracking-tight">Set up your Operator</h2>
               <p className="text-muted-foreground">
-                Connect your team&apos;s email and add a few documents. It reads them to learn how your team works. Nothing is sent. About 10 minutes.
+                Connect your team&apos;s email and add a few documents. It reads them to learn how your team works. Nothing is sent.
               </p>
             </div>
             <Button size="lg" asChild>
