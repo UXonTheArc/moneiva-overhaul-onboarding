@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { Page } from "@/components/moneiva/page-header"
@@ -11,7 +12,9 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 async function PlaybookFromUrl({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams
   const tabParam = one(sp.tab)
-  const tab: PlaybookTab = tabParam === "rules" ? "rules" : tabParam === "documents" ? "documents" : "types"
+  // Documents moved to Teach.
+  if (tabParam === "documents") redirect(`/teach?tab=documents${one(sp.doc) ? `&doc=${encodeURIComponent(one(sp.doc)!)}` : ""}`)
+  const tab: PlaybookTab = tabParam === "rules" ? "rules" : "types"
   const stageParam = one(sp.stage)
   const stage = STAGES.includes(stageParam as Stage) ? (stageParam as Stage) : "All"
   const type = one(sp.type) ?? null

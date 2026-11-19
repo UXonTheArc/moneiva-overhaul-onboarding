@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { Check, FileText, Loader, Mail, Search, Undo2, Upload, X } from "lucide-react"
+import { Check, FileText, Loader, Search, Undo2, Upload, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -28,7 +28,7 @@ const START: Row[] = DOCS.map((d) => ({ ...d, learned: d.state === "Read" ? fact
 export function DocumentsTab({ initialDoc = null }: { initialDoc?: string | null }) {
   const [rows, setRows] = useState<Row[]>(START)
   const [q, setQ] = useState("")
-  // Deep link: /playbook?tab=documents&doc=<file name>
+  // Deep link: /teach?tab=documents&doc=<file name>
   const [open, setOpen] = useState<string | null>(START.some((r) => r.name === initialDoc && r.state === "Read") ? initialDoc : null)
   const [checks, setChecks] = useState<Record<string, Check>>({})
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -151,18 +151,6 @@ export function DocumentsTab({ initialDoc = null }: { initialDoc?: string | null
         </span>
       </button>
 
-      <Card className="flex-row flex-wrap items-center gap-3.5 px-[18px] py-4">
-        <span className="grid size-9 place-items-center rounded-lg bg-muted">
-          <Mail className="size-4 text-muted-foreground" />
-        </span>
-        <div className="flex min-w-[240px] flex-1 flex-col gap-0.5">
-          <span className="font-medium">Looking for your email history?</span>
-          <span className="text-[13px] text-muted-foreground">It moved to Training, since past email is what the Operator trains on.</span>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/training">Go to Training</Link>
-        </Button>
-      </Card>
 
       <FactsSheet
         doc={cur}

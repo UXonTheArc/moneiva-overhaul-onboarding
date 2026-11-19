@@ -24,6 +24,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { PageHeader } from "@/components/moneiva/page-header"
+import { DocumentsTab } from "./documents-tab"
+import { LearnsFrom } from "./sources"
 import { ToneBadge, TONE_CLASS } from "@/components/moneiva/status"
 import {
   KIND_BOX,
@@ -66,11 +68,16 @@ export function TrainingView({
   initialTab,
   initialThread,
   initialPhase = "ready",
+  initialDocs = false,
+  initialDoc = null,
 }: {
   initialTab: TrainingTab
   initialThread: string | null
   initialPhase?: TrainingPhase
+  initialDocs?: boolean
+  initialDoc?: string | null
 }) {
+  const [docs, setDocs] = useState(initialDocs)
   const [phase, setPhase] = useState<TrainingPhase>(initialPhase)
   const [importOpen, setImportOpen] = useState(false)
   const [tab, setTab] = useState<TrainingTab>(initialTab)
@@ -95,12 +102,13 @@ export function TrainingView({
   const shown = list.filter((t) => t.subject.toLowerCase().includes(query.trim().toLowerCase()))
   const cur = runChecked ? null : (list.find((t) => t.id === sel) ?? null)
 
-  const sync = (t: TrainingTab, id: string | null) => {
+  const sync = (t: TrainingTab, id: string | null, docsOn = false) => {
     const p = new URLSearchParams()
     if (t === "shadow") p.set("tab", "shadow")
     if (id && id !== FIRST[t]) p.set("thread", id)
+    if (docsOn) p.set("tab", "documents")
     const q = p.toString()
-    window.history.replaceState(null, "", q ? `/training?${q}` : "/training")
+    window.history.replaceState(null, "", q ? `/teach?${q}` : "/teach")
   }
   const select = (id: string | null) => {
     setSel(id)
@@ -108,7 +116,12 @@ export function TrainingView({
     setPop(null)
     sync(tab, id)
   }
+  const openDocs = () => {
+    setDocs(true)
+    sync(tab, null, true)
+  }
   const changeTab = (t: TrainingTab) => {
+    setDocs(false)
     setTab(t)
     setSel(FIRST[t])
     setSub("thread")
@@ -143,7 +156,7 @@ export function TrainingView({
   if (phase !== "ready") {
     return (
       <>
-        <PageHeader title="Training" description="Check what the Operator learned. Every fix makes it better at the next email." />
+        <PageHeader title="Teach" description="Give the Operator email and documents to learn from, then check what it learned." />
         {phase === "empty" ? (
           <TrainingEmpty onImport={() => setImportOpen(true)} />
         ) : (
@@ -160,10 +173,17 @@ export function TrainingView({
   return (
     <>
       <PageHeader
-        title="Training"
-        description="Check what the Operator learned. Every fix makes it better at the next email."
-        actions={
-          isHistory ? (
+        title="Teach"
+        description="Give the Operator email and documents to learn from, then check what it learned. Every fix makes it better at the next email."
+      />
+
+      <LearnsFrom onDocs={openDocs} />
+
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-lg font-medium">Check what it learned</h2>
+        </div>
+        {docs ? null : isHistory ? (
             <>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -201,11 +221,10 @@ export function TrainingView({
               <i className="size-2 rounded-full bg-green-600" />
               Watching live email since Oct 1
             </span>
-          )
-        }
-      />
+          )}
+      </div>
 
-      <Tabs value={tab} onValueChange={(v) => changeTab(v as TrainingTab)} className="-mt-1 gap-3">
+      <Tabs value={docs ? "documents" : tab} onValueChange={(v) => (v === "documents" ? openDocs() : changeTab(v as TrainingTab))} className="-mt-1 gap-3">
         <TabsList className="max-w-full justify-start overflow-x-auto overflow-y-hidden scrollbar-none">
           <TabsTrigger value="history" className="px-3">
             From history<span className="font-normal text-muted-foreground">· Learn</span>
@@ -213,11 +232,16 @@ export function TrainingView({
           <TabsTrigger value="shadow" className="px-3">
             From live email<span className="font-normal text-muted-foreground">· Shadow</span>
           </TabsTrigger>
+          <TabsTrigger value="documents" className="px-3">
+            Documents
+          </TabsTrigger>
         </TabsList>
-        <span className="text-[13px] text-muted-foreground">{copy.hint}</span>
+        <span className="text-[13px] text-muted-foreground">
+          {docs ? "Each document opens to the facts it learned from it, so your team can check them one by one." : copy.hint}
+        </span>
       </Tabs>
 
-      {isHistory ? <EmailSourceCard reading={false} onImport={() => setImportOpen(true)} /> : null}
+      {docs ? <DocumentsTab initialDoc={initialDoc} /> : <>
 
       <div className="flex flex-col items-start gap-5 text-sm lg:flex-row">
         <Card className="w-full gap-0 p-2.5 lg:w-80 lg:shrink-0">
@@ -378,6 +402,7 @@ export function TrainingView({
           />
         </>
       ) : null}
+      </>}
       {importDialog}
     </>
   )

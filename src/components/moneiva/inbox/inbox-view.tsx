@@ -918,8 +918,8 @@ function ReplyMain({
               <span>
                 The changes you make are saved as a correction, so the Operator
                 learns from them. You&apos;ll see it in{" "}
-                <Link href="/training" className="underline underline-offset-2">
-                  Training
+                <Link href="/teach" className="underline underline-offset-2">
+                  Teach
                 </Link>
                 .
               </span>

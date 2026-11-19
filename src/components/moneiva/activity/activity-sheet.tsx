@@ -153,7 +153,7 @@ function Feedback() {
                 variant="destructive"
                 onClick={() => {
                   setRejected(true)
-                  toast("Rejected", { description: `${reason}. Your team will see it in Training.` })
+                  toast("Rejected", { description: `${reason}. Your team will see it in Teach.` })
                   setMode(null)
                 }}
               >

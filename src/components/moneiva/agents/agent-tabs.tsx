@@ -112,7 +112,7 @@ export function ProfileTab({ agent: a }: { agent: Agent }) {
         </Section>
       ) : null}
 
-      <Section title="Persona" sub="Who it is and what it may do. Leave procedures out. It learns those in Training.">
+      <Section title="Persona" sub="Who it is and what it may do. Leave procedures out. It learns those in Teach.">
         <FormRow label="Who it is" htmlFor={id("who")}>
           <Textarea id={id("who")} defaultValue={a.who} className="min-h-9" rows={2} />
         </FormRow>

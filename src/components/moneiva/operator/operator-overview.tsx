@@ -55,7 +55,7 @@ export function OperatorOverview() {
               <Link href="/playbook">Open Playbook</Link>
             </Button>
             <Button asChild>
-              <Link href="/training">Teach it</Link>
+              <Link href="/teach">Teach it</Link>
             </Button>
           </>
         }
@@ -64,7 +64,7 @@ export function OperatorOverview() {
       {/* What it knows */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { n: FACT_COUNT, label: "facts it knows", sub: "From your documents and past email", href: "/playbook?tab=documents" },
+          { n: FACT_COUNT, label: "facts it knows", sub: "From your documents and past email", href: "/teach?tab=documents" },
           { n: REQUEST_TYPES.length, label: "request types", sub: `${toName.length} new ones to name`, href: "/playbook" },
           { n: RULES.length, label: "rules your team set", sub: "Always followed, at every step", href: "/playbook?tab=rules" },
         ].map((s) => (

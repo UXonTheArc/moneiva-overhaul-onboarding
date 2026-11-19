@@ -43,13 +43,12 @@ import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/moneiva/page-header"
-import { DOCS, ME, REQUEST_TYPES, RULES, STAGES, type RequestType, type Rule, type Stage } from "@/lib/moneiva/data"
+import { ME, REQUEST_TYPES, RULES, STAGES, type RequestType, type Rule, type Stage } from "@/lib/moneiva/data"
 import { FACT_COUNT, KNOWS, LEARN_INBOX_ITEM } from "@/lib/moneiva/playbook-data"
 import { RuleDialog, type NewRule } from "./dialogs"
-import { DocumentsTab } from "./documents-tab"
 import { StageMeter } from "./stage-meter"
 
-export type PlaybookTab = "types" | "rules" | "documents"
+export type PlaybookTab = "types" | "rules"
 type StageFilter = "All" | Stage
 
 const ALL_TYPES = "All request types"
@@ -70,7 +69,7 @@ export function PlaybookView({
   initialTab,
   initialStage,
   initialType,
-  initialDoc = null,
+  initialDoc: _initialDoc = null,
 }: {
   initialTab: PlaybookTab
   initialStage: StageFilter
@@ -171,9 +170,6 @@ export function PlaybookView({
           </TabsTrigger>
           <TabsTrigger value="rules" className="px-3">
             Rules <CountBadge n={rules.length} />
-          </TabsTrigger>
-          <TabsTrigger value="documents" className="px-3">
-            Documents <CountBadge n={DOCS.length} />
           </TabsTrigger>
         </TabsList>
 
@@ -276,9 +272,6 @@ export function PlaybookView({
           <RulesTab rules={rules} setRules={setRules} onAdd={() => setRuleFor(ALL_TYPES)} />
         </TabsContent>
 
-        <TabsContent value="documents">
-          <DocumentsTab initialDoc={initialDoc} />
-        </TabsContent>
       </Tabs>
 
       {cur ? <MoveUpDialog open={moveUpOpen} onOpenChange={setMoveUpOpen} t={cur} onConfirm={() => {

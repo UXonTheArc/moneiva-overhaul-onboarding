@@ -132,7 +132,7 @@ export function TrainingEmpty({ onImport }: { onImport: () => void }) {
       <div className="flex max-w-[520px] flex-col gap-1.5">
         <h2 className="text-lg font-semibold">Nothing to review yet</h2>
         <p className="text-muted-foreground">
-          Training is where your team checks the Operator&apos;s work before it does anything for real. It starts with your past
+          Teach is where your team checks the Operator&apos;s work before it does anything for real. It starts with your past
           email.
         </p>
       </div>
@@ -153,7 +153,7 @@ export function TrainingEmpty({ onImport }: { onImport: () => void }) {
         <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
           <FileText className="size-3.5" />
           Have a handbook or rate sheet? You can also
-          <Link href="/playbook?tab=documents" className="text-blue-600 hover:underline dark:text-blue-400">
+          <Link href="/teach?tab=documents" className="text-blue-600 hover:underline dark:text-blue-400">
             upload documents
           </Link>
         </span>

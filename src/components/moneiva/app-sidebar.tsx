@@ -58,8 +58,8 @@ const NAV: NavGroup[] = [
     label: "Operator",
     items: [
       { title: "Overview", icon: Brain, href: "/operator" },
+      { title: "Teach", icon: GraduationCap, href: "/teach" },
       { title: "Playbook", icon: FileText, href: "/playbook" },
-      { title: "Training", icon: GraduationCap, href: "/training" },
     ],
   },
   {
@@ -93,6 +93,7 @@ function isActive(pathname: string, href?: string) {
 
 export function AppSidebar() {
   const pathname = usePathname()
+  if (pathname.startsWith("/setup")) return null
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
