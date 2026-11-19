@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { TmsDialog, TmsRow, type TmsLink } from "@/components/moneiva/setup/tms-connect"
 import { ScopePicker } from "@/components/moneiva/teach/sources"
 import { FLOWS } from "@/lib/moneiva/agents-extra-data"
 import { REQUEST_TYPES } from "@/lib/moneiva/data"
@@ -86,7 +87,8 @@ export function SetupWizard() {
   const [openInbox, setOpenInbox] = useState(0)
   const [phone, setPhone] = useState(true)
   const [texts, setTexts] = useState(true)
-  const [tms, setTms] = useState<"off" | "connecting" | "on">("off")
+  const [tms, setTms] = useState<TmsLink | null>(null)
+  const [tmsOpen, setTmsOpen] = useState(false)
   const [docs, setDocs] = useState<Doc[]>([])
 
   const next = () => setStep((s) => s + 1)
@@ -145,7 +147,7 @@ export function SetupWizard() {
       inboxes: inboxes.map(({ foldersShown: _f, ...i }) => ({ ...i, threads: threadsFor(i) })),
       phone,
       texts,
-      tms: tms === "on",
+      tms: !!tms,
       docs: docs.map((d) => d.name),
       finishedAt: new Date().toISOString(),
     }
@@ -156,7 +158,7 @@ export function SetupWizard() {
   const docsBusy = docs.some((d) => d.state !== "read")
 
   if (step === 6)
-    return <Building inboxes={inboxes.map((i) => ({ ...i, threads: threadsFor(i) }))} phone={phone} docs={docs} tms={tms === "on"} onDone={next} />
+    return <Building inboxes={inboxes.map((i) => ({ ...i, threads: threadsFor(i) }))} phone={phone} docs={docs} tms={tms?.name ?? null} onDone={next} />
   if (step === 7) return <Done inboxes={inboxes.length} phone={phone} docs={docs.length} invites={invites.filter((i) => i.email.trim()).length} biz={biz.name} />
 
   return (
@@ -347,18 +349,15 @@ export function SetupWizard() {
                   makes="Creates the Inbound phone line agent"
                 />
                 <Toggle icon={<Mail />} title="Text messages" sub="Reply to texts sent to the same number" on={texts} set={setTexts} />
-                <Toggle
-                  icon={<Plug />}
-                  title="Connect your TMS"
-                  sub="Lets it look up pickups, PROs and delivery dates in Acme. Without it, it can only learn, not answer."
-                  on={tms !== "off"}
-                  set={(v) => {
-                    if (!v) return setTms("off")
-                    setTms("connecting")
-                    setTimeout(() => setTms((t) => (t === "connecting" ? "on" : t)), 1600)
+                <TmsRow link={tms} onConnect={() => setTmsOpen(true)} onRemove={() => setTms(null)} />
+                <TmsDialog
+                  key={tmsOpen ? "open" : "closed"}
+                  open={tmsOpen}
+                  onClose={() => setTmsOpen(false)}
+                  onConnected={(l) => {
+                    setTms(l)
+                    setTmsOpen(false)
                   }}
-                  makes={tms === "connecting" ? "Connecting to Acme" : "Connected · 12,480 shipments found · added Acme lookups to every agent"}
-                  busy={tms === "connecting"}
                 />
               </Panel>
             ) : null}
@@ -425,7 +424,7 @@ export function SetupWizard() {
                     value={inboxes.map((i) => `${i.address} (${SCOPE_LABEL[i.scope].toLowerCase()})`).join(", ") || "None yet"}
                     onEdit={() => setStep(2)}
                   />
-                  <Summary label="Phone and systems" value={[phone && "Phone line", texts && "Texts", tms === "on" && "Acme TMS"].filter(Boolean).join(", ") || "None"} onEdit={() => setStep(3)} />
+                  <Summary label="Phone and systems" value={[phone && "Phone line", texts && "Texts", tms && `${tms.name} (${tms.access === "read" ? "look up only" : "look up and update"})`].filter(Boolean).join(", ") || "None"} onEdit={() => setStep(3)} />
                   <Summary label="Documents" value={docs.length ? `${docs.length} files` : "None yet"} onEdit={() => setStep(4)} />
                 </ul>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -457,7 +456,7 @@ export function SetupWizard() {
                 ) : (
                   <Button
                     onClick={next}
-                    disabled={(step === 2 && (inboxes.length === 0 || inboxes.some((i) => i.foldersShown < FOLDERS.length))) || (step === 4 && docsBusy) || (step === 3 && tms === "connecting")}
+                    disabled={(step === 2 && (inboxes.length === 0 || inboxes.some((i) => i.foldersShown < FOLDERS.length))) || (step === 4 && docsBusy)}
                   >
                     Continue <ArrowRight />
                   </Button>
@@ -773,7 +772,7 @@ const FOUND = [
 
 type Task = { id: string; label: string; detail: string; ms: number }
 
-function Building({ inboxes, phone, docs, tms, onDone }: { inboxes: SetupInbox[]; phone: boolean; docs: Doc[]; tms: boolean; onDone: () => void }) {
+function Building({ inboxes, phone, docs, tms, onDone }: { inboxes: SetupInbox[]; phone: boolean; docs: Doc[]; tms: string | null; onDone: () => void }) {
   const factTotal = docs.reduce((n, d) => n + d.facts, 0)
   const totalThreads = inboxes.reduce((n, i) => n + i.threads, 0)
   const tasks: Task[] = [
@@ -788,7 +787,7 @@ function Building({ inboxes, phone, docs, tms, onDone }: { inboxes: SetupInbox[]
     { id: "flow", label: "Drawing its workflow", detail: "What happens when a new email comes in", ms: 3000 },
     ...(phone ? [{ id: "phone", label: "Creating the Inbound phone line agent", detail: "Answers (555) 010-0345, with its own workflow", ms: 1800 }] : []),
     ...(docs.length ? [{ id: "docs", label: `Learning from ${docs.length} documents`, detail: `${factTotal} facts to check`, ms: 2600 }] : []),
-    ...(tms ? [{ id: "tms", label: "Linking Acme lookups", detail: "Pickups, PROs and delivery dates", ms: 1400 }] : []),
+    ...(tms ? [{ id: "tms", label: `Linking ${tms} lookups`, detail: "Pickups, PROs and delivery dates", ms: 1400 }] : []),
     { id: "compare", label: "Comparing with what your team did", detail: "Picking threads for your team to check first", ms: 2400 },
     { id: "learn", label: "Putting everything at Learn", detail: "Nothing is sent until your team says so", ms: 1200 },
   ]
