@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation"
+import { FileText } from "lucide-react"
+
+import { NeedsSetup } from "@/components/moneiva/clean/gate"
 import { Suspense } from "react"
 
 import { Page } from "@/components/moneiva/page-header"
@@ -20,7 +23,11 @@ async function PlaybookFromUrl({ searchParams }: { searchParams: SearchParams })
   const type = one(sp.type) ?? null
   const doc = one(sp.doc) ?? null
   // key: a link to another stage, type or tab from inside the page starts fresh from the URL
-  return <PlaybookView key={`${tab}|${stage}|${type}|${doc}`} initialTab={tab} initialStage={stage} initialType={type} initialDoc={doc} />
+  return (
+    <NeedsSetup icon={<FileText />} title="Your Playbook is empty" sub="The Playbook fills in as the Operator reads your email: every kind of request it finds, and the rules your team sets.">
+      <PlaybookView key={`${tab}|${stage}|${type}|${doc}`} initialTab={tab} initialStage={stage} initialType={type} initialDoc={doc} />
+    </NeedsSetup>
+  )
 }
 
 export default function PlaybookPage({ searchParams }: { searchParams: SearchParams }) {

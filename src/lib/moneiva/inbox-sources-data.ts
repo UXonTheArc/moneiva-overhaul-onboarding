@@ -3,7 +3,7 @@
 export type ReadScope = "all" | "folders" | "new"
 export type InboxSource = {
   address: string
-  provider: "Gmail" | "Microsoft 365"
+  provider: "Gmail" | "Google Workspace" | "Microsoft 365"
   scope: ReadScope
   /** How far back, for "all". Folder names, for "folders". */
   range?: string

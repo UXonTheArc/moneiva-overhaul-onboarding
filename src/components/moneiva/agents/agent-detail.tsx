@@ -46,7 +46,7 @@ export function AgentDetail({ id }: { id: AgentId }) {
   const [status, setStatus] = useState<AgentStatus>(agent.status)
   const [published, setPublished] = useState<DraftStep[]>(() => FLOWS[id].map((s, i) => ({ ...s, key: `s${i}` })))
   const [draft, setDraft] = useState<DraftStep[] | null>(null)
-  const [publishedNote, setPublishedNote] = useState("Published Oct 2 by Jordan Lee")
+  const [publishedNote, setPublishedNote] = useState("Made by setup today")
   const typeCount = requestTypesFor(agent).length
   const learning = isLearning(agent)
 

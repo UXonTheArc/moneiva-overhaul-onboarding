@@ -1,4 +1,7 @@
 import { Suspense } from "react"
+import { GraduationCap } from "lucide-react"
+
+import { NeedsSetup } from "@/components/moneiva/clean/gate"
 
 import { Page } from "@/components/moneiva/page-header"
 import { TrainingView } from "@/components/moneiva/teach/training-view"
@@ -17,6 +20,7 @@ async function TrainingFromUrl({ searchParams }: { searchParams: SearchParams })
   const st = one(sp.state)
   const phase = st === "empty" || st === "reading" ? st : "ready"
   return (
+    <NeedsSetup icon={<GraduationCap />} title="Nothing to teach from yet" sub="Teach is where your team checks what the Operator learned. It starts once you connect your email in setup.">
     <TrainingView
       key={`${tabParam}|${thread}|${phase}|${doc}`}
       initialTab={tab}
@@ -25,6 +29,7 @@ async function TrainingFromUrl({ searchParams }: { searchParams: SearchParams })
       initialDocs={docs}
       initialDoc={doc}
     />
+    </NeedsSetup>
   )
 }
 

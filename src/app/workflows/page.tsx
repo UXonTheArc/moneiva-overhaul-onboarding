@@ -1,14 +1,10 @@
-import { Suspense } from "react"
-
-import { AutomationsList } from "@/components/moneiva/agents/automations-list"
 import { Page } from "@/components/moneiva/page-header"
+import { CleanWorkflows } from "@/components/moneiva/clean/clean-pages"
 
 export default function WorkflowsPage() {
   return (
     <Page title="Workflows">
-      <Suspense>
-        <AutomationsList />
-      </Suspense>
+      <CleanWorkflows />
     </Page>
   )
 }

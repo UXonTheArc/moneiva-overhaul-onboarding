@@ -1,14 +1,10 @@
-import { Suspense } from "react"
-
-import { AgentsList } from "@/components/moneiva/agents/agents-list"
 import { Page } from "@/components/moneiva/page-header"
+import { CleanTaskAgents } from "@/components/moneiva/clean/clean-pages"
 
 export default function AgentsPage() {
   return (
     <Page title="Task agents">
-      <Suspense>
-        <AgentsList />
-      </Suspense>
+      <CleanTaskAgents />
     </Page>
   )
 }

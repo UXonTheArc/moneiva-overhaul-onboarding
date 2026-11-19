@@ -46,7 +46,7 @@ export const KIND_LABEL: Record<AgentKind, string> = {
 export const AGENTS: Agent[] = [
   { id: 'op', name: 'Email and texts', kind: 'email', status: 'live', channel: 'Email · service@example.test', address: 'service@example.test',
     desc: 'Answers customer emails for the customer service desk, and replies or acts the way your team does.',
-    today: '25', todayLabel: 'emails and texts today', needs: '7 need you', needsHref: '/inbox', workflow: 'In 3 workflows', href: '/agents/op',
+    today: '0', todayLabel: 'emails sent', needs: '', workflow: 'In 1 workflow', href: '/agents/op',
     team: 'LTL customer service', language: 'English', tz: 'Central time (Chicago)',
     who: 'The customer service desk\'s assistant for Acme Logistics. It writes as "Customer Service Team".',
     goal: 'Answer each sender with what Acme and the Playbook can confirm, and propose the next step your team would take.',
@@ -57,7 +57,7 @@ export const AGENTS: Agent[] = [
     outputs: [['Request type', true], ['Pickup number', true], ['PRO number', true], ['Next step', false], ['Escalation reason', false]], inputs: [] },
   { id: 'phone', name: 'Inbound phone line', kind: 'inbound', status: 'live', channel: 'Inbound calls · (555) 010-0345', address: '(555) 010-0345',
     desc: 'Answers the customer service line, gives pickup and delivery status, and books call backs.',
-    today: '9', todayLabel: 'calls today', needs: '1 call to return', needsHref: '/inbox?filter=call&item=c1', workflow: 'In 1 workflow', href: '/agents/phone',
+    today: '0', todayLabel: 'calls answered', needs: '', workflow: 'In 1 workflow', href: '/agents/phone',
     team: 'LTL customer service', language: 'English', language2: 'Spanish', tz: 'Central time (Chicago)', voice: 'Riley: female, warm, clear (default)', callName: 'Riley', callingFrom: 'Acme Logistics', fallback: 'Transfer to the customer service desk',
     greeting: 'Thanks for calling Acme Logistics. This is Riley. How can I help?',
     who: 'The voice of the customer service line. Friendly, short answers, and it says when it is passing a caller to a person.',

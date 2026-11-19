@@ -13,19 +13,27 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ToneBadge } from "@/components/moneiva/status"
 import { DOCS, ME, type Doc } from "@/lib/moneiva/data"
+import { useSetup } from "@/lib/moneiva/setup-store"
 import { NEW_DOC, factsFrom } from "@/lib/moneiva/playbook-data"
 
 type Fact = { text: string; group: string }
 type Row = Doc & { learned: Fact[] }
 type Check = "right" | "removed"
 
-const START: Row[] = DOCS.map((d) => ({ ...d, learned: d.state === "Read" ? factsFrom(d.name) : [] }))
+/** Only the documents uploaded during setup, all read. */
+const startFrom = (names: string[]): Row[] =>
+  DOCS.filter((d) => names.includes(d.name)).map((d) => {
+    const learned = factsFrom(d.name)
+    return { ...d, by: ME.name, on: "Today", state: "Read", facts: `${learned.length} facts`, learned }
+  })
 
 /**
  * Documents: what the Operator read. Each document opens to the exact facts it learned from it,
  * so the team can check them one by one. Email history lives in Training, the thing it feeds.
  */
 export function DocumentsTab({ initialDoc = null }: { initialDoc?: string | null }) {
+  const setup = useSetup()
+  const [START] = useState<Row[]>(() => startFrom(setup?.docs ?? []))
   const [rows, setRows] = useState<Row[]>(START)
   const [q, setQ] = useState("")
   // Deep link: /teach?tab=documents&doc=<file name>

@@ -96,12 +96,8 @@ export const RUNSET: Record<AgentId, RunSetting[]> = {
 /** Workflows that use each agent: name, how, link. */
 export type UsedIn = { name: string; sub: string; href: string }
 export const USED: Record<AgentId, UsedIn[]> = {
-  op: [
-    { name: "Damage report follow-up", sub: "Reads the report first, then OS&D check calls takes over", href: "/workflows/damage-report" },
-    { name: "Late load updates", sub: "Emails the customer the new ETA", href: "/workflows" },
-    { name: "Missed call follow-up", sub: "Emails callers who left a voicemail", href: "/workflows" },
-  ],
-  phone: [{ name: "Missed call follow-up", sub: "Its voicemails start this workflow", href: "/workflows" }],
+  op: [{ name: "Answer customer email", sub: "Made by setup. Runs on every new email to your connected inboxes", href: "/workflows" }],
+  phone: [{ name: "Answer the customer service line", sub: "Made by setup. Runs on every call", href: "/workflows" }],
   check: [{ name: "Late load updates", sub: "Its new ETAs go to the Operator to email out", href: "/workflows" }],
   osd: [{ name: "Damage report follow-up", sub: "Calls the site after the Operator reads the report", href: "/workflows/damage-report" }],
   cat: [],

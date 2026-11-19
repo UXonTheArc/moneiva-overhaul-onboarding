@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Activity,
   BarChart3,
@@ -14,6 +14,8 @@ import {
   Home,
   Inbox,
   KeyRound,
+  RotateCcw,
+  Sparkles,
   Settings,
   Users,
   Workflow,
@@ -33,11 +35,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { LEARNING_IDS } from "@/lib/moneiva/agents-data"
-import { inboxItems } from "@/lib/moneiva/inbox-data"
-import { ACTIVITY } from "@/lib/moneiva/activity-data"
 import { cn } from "@/lib/utils"
-
-const FAILS = ACTIVITY.filter((r) => r.status === "fail").length
+import { resetSetup, useSetup } from "@/lib/moneiva/setup-store"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 type NavItem = { title: string; icon: LucideIcon; href?: string; badge?: string; dot?: "amber" | "red"; dotLabel?: string }
 type NavGroup = { label: string; items: NavItem[] }
@@ -48,9 +48,9 @@ const NAV: NavGroup[] = [
     label: "Work",
     items: [
       { title: "Home", icon: Home, href: "/" },
-      { title: "Inbox", icon: Inbox, href: "/inbox", badge: String(inboxItems.length), dot: inboxItems.length ? "amber" : undefined, dotLabel: `${inboxItems.length} need you` },
-      // A red dot only for work that couldn't finish. Activity is a log, so "new" alone isn't worth a dot.
-      { title: "Activity", icon: Activity, href: "/activity", dot: FAILS ? "red" : undefined, dotLabel: `${FAILS} couldn't finish` },
+      // A new account: nothing waiting, so no counts or dots.
+      { title: "Inbox", icon: Inbox, href: "/inbox" },
+      { title: "Activity", icon: Activity, href: "/activity" },
     ],
   },
   {
@@ -93,6 +93,8 @@ function isActive(pathname: string, href?: string) {
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const setup = useSetup()
   if (pathname.startsWith("/setup")) return null
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -148,6 +150,8 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-xs font-semibold text-gray-600">
                 TM
@@ -158,6 +162,27 @@ export function AppSidebar() {
               </span>
               <ChevronsUpDown className="ml-auto text-muted-foreground" />
             </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-60">
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Onboarding demo</DropdownMenuLabel>
+              {setup ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    resetSetup()
+                    router.push("/")
+                  }}
+                >
+                  <RotateCcw /> Start over with a new account
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onSelect={() => router.push("/setup")}>
+                  <Sparkles /> Start setup
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>Account settings</DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

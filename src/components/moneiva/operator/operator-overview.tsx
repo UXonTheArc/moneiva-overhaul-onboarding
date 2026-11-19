@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, ArrowUpRight, Brain, Workflow } from "lucide-react"
 
@@ -7,10 +9,11 @@ import { STAGE_CLASS, StatusDot } from "@/components/moneiva/status"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { LEARNING_AGENTS, TASK_AGENTS } from "@/lib/moneiva/agents-data"
+import { LEARNING_AGENTS } from "@/lib/moneiva/agents-data"
 import { requestTypesFor } from "@/lib/moneiva/agents-extra-data"
 import { REQUEST_TYPES, RULES, STAGES, type Stage } from "@/lib/moneiva/data"
-import { FACT_COUNT } from "@/lib/moneiva/playbook-data"
+import { factsFrom } from "@/lib/moneiva/playbook-data"
+import { useSetup } from "@/lib/moneiva/setup-store"
 
 /** What happens at each step, worded for selling. */
 export const STEP_DOES: Record<Stage, string> = {
@@ -38,6 +41,10 @@ export function OperatorOverview() {
   const ready = REQUEST_TYPES.filter((t) => t.flag === "ready")
   const toName = REQUEST_TYPES.filter((t) => t.flag === "name")
   const all = countBy(REQUEST_TYPES)
+  const setup = useSetup()
+  const made = LEARNING_AGENTS.filter((a) => a.id === "op" || (a.id === "phone" && setup?.phone))
+  const factCount = (setup?.docs ?? []).reduce((n, d) => n + factsFrom(d).length, 0)
+  const threads = (setup?.inboxes ?? []).reduce((n, i) => n + i.threads, 0)
 
   return (
     <>
@@ -64,9 +71,9 @@ export function OperatorOverview() {
       {/* What it knows */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { n: FACT_COUNT, label: "facts it knows", sub: "From your documents and past email", href: "/teach?tab=documents" },
+          { n: factCount, label: "facts it knows", sub: `From ${setup?.docs.length ?? 0} documents`, href: "/teach?tab=documents" },
           { n: REQUEST_TYPES.length, label: "request types", sub: `${toName.length} new ones to name`, href: "/playbook" },
-          { n: RULES.length, label: "rules your team set", sub: "Always followed, at every step", href: "/playbook?tab=rules" },
+          { n: RULES.length, label: "rules your team set", sub: "None yet. Add them as you check its work", href: "/playbook?tab=rules" },
         ].map((s) => (
           <Link key={s.label} href={s.href} className="group">
             <Card className="gap-1 px-5 py-4 shadow-none transition-colors group-hover:bg-muted/40">
@@ -107,7 +114,7 @@ export function OperatorOverview() {
           <span className="text-muted-foreground">Each one works a channel for the Operator. What they see teaches it, and they follow its Playbook.</span>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {LEARNING_AGENTS.map((a) => {
+          {made.map((a) => {
             const types = requestTypesFor(a)
             const split = countBy(types)
             return (
@@ -134,8 +141,8 @@ export function OperatorOverview() {
                 </div>
                 <div className="mt-auto flex items-center justify-between gap-2 border-t pt-2.5 text-[13px]">
                   <span>
-                    <span className="font-semibold">{a.today}</span>
-                    <span className="text-muted-foreground"> {a.todayLabel}</span>
+                    <span className="font-semibold">{a.id === "op" ? threads.toLocaleString() : "0"}</span>
+                    <span className="text-muted-foreground"> {a.id === "op" ? "threads read" : "calls so far"}</span>
                   </span>
                   {a.needs ? (
                     <Link href={a.needsHref ?? "/inbox"} className="font-medium text-amber-800 hover:underline dark:text-amber-300">
@@ -176,8 +183,8 @@ export function OperatorOverview() {
       <Card className="flex-row flex-wrap items-center gap-3 bg-muted/40 px-5 py-4 shadow-none">
         <Workflow className="size-5 text-muted-foreground" aria-hidden />
         <span className="min-w-0 flex-[1_1_320px] text-[13px] text-muted-foreground">
-          <span className="font-medium text-foreground">Not here: {TASK_AGENTS.map((a) => a.name).join(", ")}.</span> Task agents don&apos;t learn. They
-          follow a script you set, and workflows decide when they run.
+          <span className="font-medium text-foreground">No task agents yet.</span> Task agents don&apos;t learn. They follow a script you set, like
+          check calls, and workflows decide when they run.
         </span>
         <Button asChild variant="ghost" size="sm">
           <Link href="/agents">Task agents</Link>

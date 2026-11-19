@@ -14,15 +14,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DOCS } from "@/lib/moneiva/data"
-import { FACT_COUNT } from "@/lib/moneiva/playbook-data"
-import { FOLDERS, INBOXES, RANGES, SCOPE_LABEL, SCOPE_SUB, scopeLine, type InboxSource, type ReadScope } from "@/lib/moneiva/inbox-sources-data"
+import { factsFrom } from "@/lib/moneiva/playbook-data"
+import { useSetup } from "@/lib/moneiva/setup-store"
+import { FOLDERS, RANGES, SCOPE_LABEL, SCOPE_SUB, scopeLine, type InboxSource, type ReadScope } from "@/lib/moneiva/inbox-sources-data"
 
 /**
  * Teach opens on what the Operator learns from: every connected inbox and every document.
  * Inboxes are grouped under the agent that answers them, so it's clear one agent can cover several inboxes.
  */
 export function LearnsFrom({ onDocs }: { onDocs: () => void }) {
-  const [inboxes, setInboxes] = useState<InboxSource[]>(INBOXES)
+  const setup = useSetup()
+  // A new account: only the inboxes connected during setup.
+  const [inboxes, setInboxes] = useState<InboxSource[]>(() =>
+    (setup?.inboxes ?? []).map((i) => ({
+      address: i.address,
+      provider: i.provider,
+      scope: i.scope,
+      range: i.scope === "all" ? i.range : undefined,
+      folders: i.scope === "folders" ? i.folders : undefined,
+      agent: "Email and texts",
+      agentHref: "/agents/op",
+      state: i.scope === "new" ? "watching" : "live",
+      read: i.threads,
+      since: "Connected today",
+    }))
+  )
+  const docs = DOCS.filter((d) => setup?.docs.includes(d.name))
+  const facts = docs.reduce((n, d) => n + factsFrom(d.name).length, 0)
   const [edit, setEdit] = useState<InboxSource | "new" | null>(null)
   const agents = [...new Set(inboxes.map((i) => i.agent))]
 
@@ -89,15 +107,15 @@ export function LearnsFrom({ onDocs }: { onDocs: () => void }) {
         <div className="flex flex-col">
           <span className="font-medium">Documents</span>
           <span className="text-[13px] text-muted-foreground">
-            {DOCS.length} documents · {FACT_COUNT} facts learned
+            {docs.length ? `${docs.length} documents · ${facts} facts learned` : "None yet. Handbooks, rate sheets and dock hours work well."}
           </span>
         </div>
         <ul className="flex flex-col gap-2 text-[13px]">
-          {DOCS.slice(0, 3).map((d) => (
+          {docs.slice(0, 3).map((d) => (
             <li key={d.name} className="flex items-center gap-2">
               <FileText className="size-3.5 flex-none text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">{d.name}</span>
-              <span className="text-muted-foreground">{d.facts}</span>
+              <span className="text-muted-foreground">{factsFrom(d.name).length} facts</span>
             </li>
           ))}
         </ul>
@@ -249,7 +267,7 @@ function InboxForm({
   onSave: (i: InboxSource, isNew: boolean) => void
 }) {
   const [address, setAddress] = useState(cur?.address ?? "")
-  const [provider, setProvider] = useState<InboxSource["provider"]>(cur?.provider ?? "Gmail")
+  const [provider, setProvider] = useState<InboxSource["provider"]>(cur?.provider ?? "Google Workspace")
   const [scope, setScope] = useState<ReadScope>(cur?.scope ?? "all")
   const [range, setRange] = useState<string>(cur?.range ?? "Last 6 months")
   const [folders, setFolders] = useState<string[]>(cur?.folders ?? ["Inbox", "Customer service"])
@@ -289,7 +307,7 @@ function InboxForm({
             <div className="flex flex-col gap-1.5">
               <Label>Sign in with</Label>
               <div className="grid grid-cols-2 gap-2">
-                {(["Gmail", "Microsoft 365"] as const).map((p) => (
+                {(["Google Workspace", "Microsoft 365"] as const).map((p) => (
                   <button
                     key={p}
                     type="button"
